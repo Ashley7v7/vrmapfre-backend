@@ -5,8 +5,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
-require('dotenv').config();
-
 
 const app = express();
 const prisma = new PrismaClient();
@@ -14,10 +12,7 @@ const PORT = process.env.PORT;
 
 
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',                  // Para desarrollo local
-    'https://portal-inspeccion.onrender.com'  // Para producción en línea
-  ],
+  origin: 'http://localhost:5173',
   credentials: true
 };
 
@@ -469,7 +464,7 @@ app.delete('/api/visitas/:id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+
+app.listen(process.env.PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en 0.0.0.0:${process.env.PORT}`);
 });
