@@ -1,5 +1,6 @@
 export async function guardarSolicitudEnVisitasProgramadas(solicitudForm, ubicaciones, contacto, rubrosInteres) {
   try {
+    const API_URL = import.meta.env.VITE_API_URL;
     const fechaHoy = new Date().toISOString();
     const suscriptor = localStorage.getItem('nombreCompleto') || 'Sin nombre';
 
@@ -19,17 +20,9 @@ export async function guardarSolicitudEnVisitasProgramadas(solicitudForm, ubicac
       tipoMoneda: ubic.tipoMoneda || 'MXN',
       cp: ubic.cp || '',
       ingeniero: '',
-
-
-
-
       vigenciaInicio: solicitudForm.vigenciaInicio ? new Date(solicitudForm.vigenciaInicio).toISOString() : null,
       vigenciaTermino: solicitudForm.vigenciaTermino ? new Date(solicitudForm.vigenciaTermino).toISOString() : null,
-
-
-
       contacto: contacto,
-
       rubrosInteres: rubrosInteres,
       correoSuscriptor: solicitudForm.correoSuscriptor,
       telSuscriptor: solicitudForm.telSuscriptor,
@@ -45,7 +38,7 @@ export async function guardarSolicitudEnVisitasProgramadas(solicitudForm, ubicac
 
     console.log('📦 JSON enviado al backend:', JSON.stringify({ visitas }, null, 2));
 
-    const response = await fetch('http://localhost:3000/api/visitas-multiples', {
+    const response = await fetch(`${API_URL}/api/visitas-multiples`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ visitas })

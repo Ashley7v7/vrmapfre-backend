@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 
+
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
