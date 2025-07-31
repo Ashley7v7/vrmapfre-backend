@@ -10,7 +10,6 @@ require('dotenv').config();
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT;
 
 
 const corsOptions = {
@@ -470,6 +469,7 @@ app.delete('/api/visitas/:id', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
