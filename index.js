@@ -134,6 +134,8 @@ app.post('/api/visitas-multiples', async (req, res) => {
           correoRepresentante: visita.correoRepresentante,
           telRepresentante: visita.telRepresentante,
 
+          usoReporte: visita.usoReporte,
+          compartirCon: visita.compartirCon,
           contactos: {
             create: [
               {
