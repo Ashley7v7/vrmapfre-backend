@@ -3,7 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Prisma } = require('@prisma/client');
 const path = require('path');
 require('dotenv').config();
 
@@ -26,6 +26,7 @@ app.options('*', cors(corsOptions)); // importante para que funcione en Render
 app.use(bodyParser.json());
 
 
+
 console.log('📦 Modelos disponibles en Prisma:', Object.keys(prisma));
 
 // 🔐 LOGIN corregido
@@ -37,9 +38,7 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    // ⚠️ Usa el nombre correcto del modelo Prisma: Usuario (con mayúscula)const user = await
     const user = await prisma.usuario.findUnique({ where: { correo } });
-
 
     console.log('🔍 Usuario encontrado:', user);
 
@@ -55,10 +54,19 @@ app.post('/api/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error en login:', error);
-    res.status(500).json({ message: 'Error al iniciar sesión' });
+    console.error('❌ Error al guardar visitas múltiples:', error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error('🧠 Código Prisma:', error.code);
+      console.error('📌 Meta del error:', error.meta);
+      res.status(500).json({ message: `Prisma error: ${error.message}`, code: error.code, meta: error.meta });
+    } else {
+      res.status(500).json({ message: error.message || 'Error desconocido al registrar visitas', stack: error.stack });
+    }
   }
-});
+
+}); // 👈 ESTA LLAVE FALTABA EN TU CÓDIGO ORIGINAL
+
 
 
 
@@ -101,14 +109,15 @@ app.get('/api/visitas', async (req, res) => {
 app.post('/api/visitas-multiples', async (req, res) => {
   try {
     const { visitas } = req.body;
+    console.log('📥 Visitas recibidas:', JSON.stringify(visitas, null, 2));
 
-    for (const visita of visitas) {
-      console.log('📝 VISITA RECIBIDA:', JSON.stringify(visita, null, 2));
-
+    await Promise.all(visitas.map(async (visita) => {
       await prisma.visita.create({
         data: {
-          estatus: visita.estatus,
-          latitud: visita.latitud,
+          razonSocial: visita.razonSocial || '',
+          usoReporte: visita.usoReporte || '',
+          compartirCon: visita.compartirCon || {},
+
           suscriptor: visita.suscriptor,
           asegurado: visita.asegurado,
           direccion: visita.direccion,
@@ -118,10 +127,18 @@ app.post('/api/visitas-multiples', async (req, res) => {
           cobertura: visita.cobertura,
           giro: visita.giro,
           fechaSolicitud: new Date(visita.fechaSolicitud),
+          estatus: visita.estatus,
+          latitud: visita.latitud,
           longitud: visita.longitud,
           tipoMoneda: visita.tipoMoneda,
           cp: visita.cp,
-          ingeniero: visita.ingeniero,
+          ingeniero: visita.ingeniero || '',
+
+          tipoNegocio: visita.tipoNegocio || '',
+          tipoVisita: visita.tipoVisita || '',
+          poliza: visita.poliza || '',
+          vigenciaInicio: visita.vigenciaInicio ? new Date(visita.vigenciaInicio) : null,
+          vigenciaTermino: visita.vigenciaTermino ? new Date(visita.vigenciaTermino) : null,
 
           correoSuscriptor: visita.correoSuscriptor,
           telSuscriptor: visita.telSuscriptor,
@@ -134,61 +151,68 @@ app.post('/api/visitas-multiples', async (req, res) => {
           correoRepresentante: visita.correoRepresentante,
           telRepresentante: visita.telRepresentante,
 
-          usoReporte: visita.usoReporte,
-          compartirCon: visita.compartirCon,
           contactos: {
             create: [
               {
-                tipo: 'asegurado',
-                nombre: visita.contacto?.nombreAsegurado || '',
-                puesto: visita.contacto?.puestoAsegurado || '',
-                telefono: visita.contacto?.telAsegurado || '',
-                correo: visita.contacto?.correoAsegurado || '',
+                nombre: visita.contacto.nombreAsegurado,
+                puesto: visita.contacto.puestoAsegurado,
+                correo: visita.contacto.correoAsegurado,
+                telefono: visita.contacto.telAsegurado,
+                tipo: 'asegurado'
               },
               {
-                tipo: 'agente',
-                nombre: visita.contacto?.nombreAgente || '',
-                puesto: visita.contacto?.puestoAgente || '',
-                telefono: visita.contacto?.telAgente || '',
-                correo: visita.contacto?.correoAgente || '',
+                nombre: visita.contacto.nombreAgente,
+                puesto: visita.contacto.puestoAgente,
+                correo: visita.contacto.correoAgente,
+                telefono: visita.contacto.telAgente,
+                tipo: 'agente'
               }
             ]
-          },
-
-          rubrosInteres: {
-            create: {
-              descripcion: visita.rubrosInteres || ''
-            }
           },
 
           ubicaciones: {
             create: [
               {
-                direccion: visita.direccion || '',
-                estado: visita.estado || '',
-                municipio: visita.municipio || '',
-                cp: visita.cp || '',
-                suma: '',
-                tipoMoneda: visita.tipoMoneda || 'MXN',
+                direccion: visita.direccion,
+                estado: visita.estado,
+                municipio: visita.municipio,
+                cp: visita.cp,
+                suma: visita.cobertura,
+                tipoMoneda: visita.tipoMoneda,
                 latitud: visita.latitud,
                 longitud: visita.longitud
               }
             ]
+          },
+
+
+          rubrosInteres: {
+            create: typeof visita.rubrosInteres === 'string'
+              ? [{ descripcion: visita.rubrosInteres }]
+              : Array.isArray(visita.rubrosInteres)
+                ? visita.rubrosInteres.map((desc) => ({ descripcion: desc }))
+                : [{ descripcion: 'Sin especificar' }]
           }
+
+
         }
       });
-
-    }
+    }));
 
     res.status(200).json({ message: '✅ Visitas registradas correctamente' });
 
   } catch (error) {
     console.error('❌ Error al guardar visitas múltiples:', error);
-    res.status(500).json({ message: 'Error al registrar visitas múltiples' });
+    console.error('❌ Error al registrar visitas múltiples:', JSON.stringify(error, null, 2));
+    res.status(500).json({
+      message: error.message || 'Error al registrar visitas múltiples',
+      code: error.code || null,
+      meta: error.meta || null,
+      stack: error.stack || null
+    });
+
   }
 });
-
-
 
 
 
@@ -297,17 +321,22 @@ app.get('/api/solicitudes', async (req, res) => {
 
     const resultado = visitas.map((v) => ({
       id: v.id,
-      razonSocial: v.asegurado,
+      razonSocial: v.razonSocial || v.asegurado, // para mantener compatibilidad con visitas viejas
       monto: v.cobertura,
       moneda: v.tipoMoneda,
       giro: v.giro,
-      tipoNegocio: v.tipoNegocio,
+      tipoNegocio: v.tipoNegocio || 'No especificado',
+      tipoVisita: v.tipoVisita || 'No especificado',
       poliza: v.poliza || 'N/A',
       vigenciaInicio: v.vigenciaInicio,
       vigenciaTermino: v.vigenciaTermino,
 
+
       tipoVisita: v.tipoVisita || 'N/A',
       fechaSolicitud: v.fechaSolicitud, // 👈 ESTA LÍNEA NUEVA
+
+      usoReporte: v.usoReporte || 'Sin especificar',  // ✅ Agregado
+      compartirCon: v.compartirCon || {},             // ✅ Agregado
 
 
       // 👇 Campos faltantes que ahora sí incluimos
@@ -466,9 +495,17 @@ app.delete('/api/visitas/:id', async (req, res) => {
 
     res.json({ message: '✅ Visita eliminada correctamente' });
   } catch (error) {
-    console.error('❌ Error al eliminar visita:', error);
-    res.status(500).json({ message: 'Error al eliminar visita' });
+    console.error('❌ Error al guardar visitas múltiples:', JSON.stringify(error, null, 2));
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error('🧠 Código Prisma:', error.code);
+      console.error('📌 Meta del error:', error.meta);
+      res.status(500).json({ message: `Prisma error: ${error.message}`, code: error.code, meta: error.meta });
+    } else {
+      res.status(500).json({ message: error.message || 'Error desconocido al registrar visitas' });
+    }
   }
+
 });
 
 const PORT = process.env.PORT || 3000;

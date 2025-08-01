@@ -57,6 +57,9 @@ model Respuesta {
 
 model Visita {
   id             Int              @id @default(autoincrement())
+  razonSocial    String? 
+  usoReporte     String?
+  compartirCon   Json?
   suscriptor     String
   asegurado      String
   direccion      String
@@ -76,7 +79,6 @@ model Visita {
   fechaCancelacion  DateTime?
   fechaVisitada     DateTime?
 
-
   correoSuscriptor     String?
   telSuscriptor        String?
   coordinador          String?
@@ -88,6 +90,11 @@ model Visita {
   correoRepresentante  String?
   telRepresentante     String?
 
+  tipoNegocio     String?
+  tipoVisita      String?
+  poliza          String?
+  vigenciaInicio  DateTime?
+  vigenciaTermino DateTime?
 
   contactos      Contacto[]       @relation("VisitaContactos")
   ubicaciones    Ubicacion[]      @relation("VisitaUbicaciones")
