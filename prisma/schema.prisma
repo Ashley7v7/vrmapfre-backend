@@ -57,9 +57,6 @@ model Respuesta {
 
 model Visita {
   id             Int              @id @default(autoincrement())
-  razonSocial    String? 
-  usoReporte     String?
-  compartirCon   Json?
   suscriptor     String
   asegurado      String
   direccion      String
@@ -100,6 +97,7 @@ model Visita {
   ubicaciones    Ubicacion[]      @relation("VisitaUbicaciones")
   rubrosInteres  RubrosInteres[]  @relation("VisitaRubros")
 }
+
 
 model Contacto {
   id         Int     @id @default(autoincrement())
