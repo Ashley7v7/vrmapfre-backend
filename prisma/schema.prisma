@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model Usuario {
   id       Int       @id @default(autoincrement())
   nombre   String
@@ -17,31 +15,30 @@ model Usuario {
   rol      String
   reportes Reporte[]
 
-  @@map("usuario") // 👈 Esto indica el nombre real de la tabla
+  @@map("usuario")
 }
 
-
 model Reporte {
-  id                  Int        @id @default(autoincrement())
-  fecha               DateTime   @default(now())
+  id                  Int         @id @default(autoincrement())
+  fecha               DateTime    @default(now())
   calificacionGeneral Float
   usuarioId           Int
-  usuario             Usuario    @relation(fields: [usuarioId], references: [id])
+  usuario             Usuario     @relation(fields: [usuarioId], references: [id])
   respuestas          Respuesta[]
 }
 
 model Seccion {
-  id        Int       @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   nombre    String
   preguntas Pregunta[]
 }
 
 model Pregunta {
-  id         Int        @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   texto      String
   seccionId  Int
   opciones   String
-  seccion    Seccion    @relation(fields: [seccionId], references: [id])
+  seccion    Seccion     @relation(fields: [seccionId], references: [id])
   respuestas Respuesta[]
 }
 
@@ -51,63 +48,62 @@ model Respuesta {
   preguntaId   Int
   respuesta    String
   calificacion Float
-  reporte      Reporte  @relation(fields: [reporteId], references: [id])
   pregunta     Pregunta @relation(fields: [preguntaId], references: [id])
+  reporte      Reporte  @relation(fields: [reporteId], references: [id])
 }
 
 model Visita {
-  id             Int              @id @default(autoincrement())
-  suscriptor     String
-  asegurado      String
-  direccion      String
-  ciudad         String
-  municipio      String
-  estado         String
-  cobertura      String
-  giro           String
-  fechaSolicitud DateTime
-  fechaVisita    DateTime?
-  estatus        String   @default("En espera")
-  latitud        Float?
-  longitud       Float?
-  tipoMoneda     String?
-  cp             String?
-  ingeniero      String?
-  fechaCancelacion  DateTime?
-  fechaVisitada     DateTime?
-
-  correoSuscriptor     String?
-  telSuscriptor        String?
-  coordinador          String?
-  correoCoordinador    String?
-  telCoordinador       String?
-  territorial          String?
-  territorialOtra      String?
-  representante        String?
-  correoRepresentante  String?
-  telRepresentante     String?
-
-  tipoNegocio     String?
-  tipoVisita      String?
-  poliza          String?
-  vigenciaInicio  DateTime?
-  vigenciaTermino DateTime?
-
-  contactos      Contacto[]       @relation("VisitaContactos")
-  ubicaciones    Ubicacion[]      @relation("VisitaUbicaciones")
-  rubrosInteres  RubrosInteres[]  @relation("VisitaRubros")
+  id                  Int             @id @default(autoincrement())
+  suscriptor          String
+  asegurado           String
+  direccion           String
+  ciudad              String
+  municipio           String
+  estado              String
+  cobertura           String
+  giro                String
+  fechaSolicitud      DateTime
+  fechaVisita         DateTime?
+  estatus             String          @default("En espera")
+  latitud             Float?
+  longitud            Float?
+  tipoMoneda          String?
+  cp                  String?
+  ingeniero           String?
+  fechaCancelacion    DateTime?
+  fechaVisitada       DateTime?
+  correoSuscriptor    String?
+  telSuscriptor       String?
+  coordinador         String?
+  correoCoordinador   String?
+  telCoordinador      String?
+  territorial         String?
+  territorialOtra     String?
+  representante       String?
+  correoRepresentante String?
+  telRepresentante    String?
+  compartirCon        Json?
+  razonSocial         String?
+  usoReporte          String?
+  poliza              String?
+  tipoNegocio         String?
+  tipoVisita          String?
+  vigenciaInicio      DateTime?
+  vigenciaTermino     DateTime?
+  contactos           Contacto[]      @relation("VisitaContactos")
+  rubrosInteres       RubrosInteres[] @relation("VisitaRubros")
+  ubicaciones         Ubicacion[]     @relation("VisitaUbicaciones")
 }
 
-
 model Contacto {
-  id         Int     @id @default(autoincrement())
-  nombre     String
-  correo     String
-  telefono   String
-  puesto     String
-  tipo       String
-  visitaId   Int
-  visita     Visita  @relation("VisitaContactos", fields: [visitaId], references: [id])
+  id       Int    @id @default(autoincrement())
+  nombre   String
+  correo   String
+  telefono String
+  puesto   String
+  tipo     String
+  visitaId Int
+  visita   Visita @relation("VisitaContactos", fields: [visitaId], references: [id])
 }
 
 model Ubicacion {
@@ -125,8 +121,8 @@ model Ubicacion {
 }
 
 model RubrosInteres {
-  id          Int     @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   descripcion String
   visitaId    Int
-  visita      Visita  @relation("VisitaRubros", fields: [visitaId], references: [id])
+  visita      Visita @relation("VisitaRubros", fields: [visitaId], references: [id])
 }

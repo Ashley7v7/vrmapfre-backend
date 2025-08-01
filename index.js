@@ -110,11 +110,17 @@ app.post('/api/visitas-multiples', async (req, res) => {
   try {
     const { visitas } = req.body;
     console.log('📥 Visitas recibidas:', JSON.stringify(visitas, null, 2));
+    console.log('Creando visita con:', {
+      usoReporte: visita.usoReporte,
+      compartirCon: visita.compartirCon,
+    });
+
+    
 
     await Promise.all(visitas.map(async (visita) => {
       await prisma.visita.create({
         data: {
-          razonSocial: visita.razonSocial || '',
+         
           usoReporte: visita.usoReporte || '',
           compartirCon: visita.compartirCon || {},
 
