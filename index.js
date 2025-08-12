@@ -110,13 +110,10 @@ app.post('/api/visitas-multiples', async (req, res) => {
   try {
     const { visitas } = req.body;
     console.log('📥 Visitas recibidas:', JSON.stringify(visitas, null, 2));
-    visitas.forEach(v => {
-      console.log('Creando visita con:', {
-        usoReporte: v.usoReporte,
-        compartirCon: v.compartirCon,
-      });
+    console.log('Creando visita con:', {
+      usoReporte: visita.usoReporte,
+      compartirCon: visita.compartirCon,
     });
-
 
     
 
