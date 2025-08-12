@@ -110,14 +110,16 @@ app.post('/api/visitas-multiples', async (req, res) => {
   try {
     const { visitas } = req.body;
     console.log('📥 Visitas recibidas:', JSON.stringify(visitas, null, 2));
-    console.log('Creando visita con:', {
-      usoReporte: visita.usoReporte,
-      compartirCon: visita.compartirCon,
-    });
 
     
 
     await Promise.all(visitas.map(async (visita) => {
+
+      console.log('Creando visita con:', {
+          usoReporte: visita.usoReporte,
+          compartirCon: visita.compartirCon,
+      });
+
       await prisma.visita.create({
         data: {
          
@@ -390,6 +392,27 @@ app.get('/api/solicitudes', async (req, res) => {
   }
 });
 
+// 📋 Obtener solicitudes de un suscriptor específico
+app.get('/api/mis-solicitudes/:correo', async (req, res) => {
+  try {
+    const { correo } = req.params;
+
+    const visitas = await prisma.visita.findMany({
+      where: { correoSuscriptor: correo },
+      orderBy: { fechaSolicitud: 'desc' },
+      include: {
+        contactos: true,
+        ubicaciones: true,
+        rubrosInteres: true
+      }
+    });
+
+    res.json(visitas);
+  } catch (error) {
+    console.error('Error en /api/mis-solicitudes:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 
 // 🧾 Frontend
